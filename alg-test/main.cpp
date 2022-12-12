@@ -622,8 +622,14 @@ void test_generalize_multi_output(
         digital_ai::literal(0, true), digital_ai::literal(2, false), digital_ai::literal(1, true)
     }));
 
-}
 
+    l_generalized.simplify();
+
+    assert(l_generalized.sums_of_products()[0].literal_products().size() == 2);
+    assert(l_generalized.sums_of_products()[1].literal_products().size() == 3);
+    assert(l_generalized.sums_of_products()[2].literal_products().size() == 2);
+
+}
 
 void unit_test_main(
 

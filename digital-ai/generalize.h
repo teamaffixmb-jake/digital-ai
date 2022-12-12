@@ -160,20 +160,36 @@ namespace digital_ai
             return false;
         }
 
+        /// @brief This method currently eliminates duplicate literal products.
         void simplify(
 
         )
         {
-            for (literal_product& l_literal_product_0 : m_literal_products)
+            for (int i = m_literal_products.size() - 1; i >= 0; i--)
             {
-                for (literal_product& l_literal_product_1 : m_literal_products)
+                auto l_literal_product_0_iterator = m_literal_products.begin() + i;
+                
+                bool l_repeated_literal_product = false;
+                
+                for (int j = 0; j < i; j++)
                 {
-                    if (l_literal_product_1 == l_literal_product_0)
+                    auto l_literal_product_1_iterator = m_literal_products.begin() + j;
+
+                    if (*l_literal_product_1_iterator == *l_literal_product_0_iterator)
                     {
-                        
+                        l_repeated_literal_product = true;
+                        break;
                     }
                 }
+
+                // Erase a single occurance of the repeated literal product.
+                if (l_repeated_literal_product)
+                {
+                    m_literal_products.erase(l_literal_product_0_iterator);
+                }
+
             }
+
         }
 
         const std::vector<literal_product>& literal_products(
@@ -209,6 +225,14 @@ namespace digital_ai
             for (int i = 0; i < l_result.size(); i++)
                 l_result[i] = m_binary_functions[i].evaluate(a_input);
             return l_result;
+        }
+
+        void simplify(
+
+        )
+        {
+            for (auto& l_sum : m_binary_functions)
+                l_sum.simplify();
         }
 
         const std::vector<sum_of_products>& sums_of_products(
