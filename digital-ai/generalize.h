@@ -7,6 +7,7 @@
 
 namespace digital_ai
 {
+    /// @brief A class which selects a bit by index and also states whether or not it will be inverting that bit.
     class literal
     {
     private:
@@ -51,6 +52,7 @@ namespace digital_ai
 
     };
 
+    /// @brief A class which acts as a boolean product of literals.
     class literal_product
     {
     private:
@@ -84,6 +86,7 @@ namespace digital_ai
 
     };
 
+    /// @brief A class which acts as a boolean sum of products of literals.
     class sum_of_products
     {
     private:
@@ -117,6 +120,8 @@ namespace digital_ai
 
     };
 
+    /// @brief A class which acts as a vector of sums of products of literals.
+    ///        (Used for multiple-output functions)
     class sum_of_products_string
     {
     private:
@@ -143,15 +148,22 @@ namespace digital_ai
 
     };
 
+    /// @brief This function defines whether a given literal will cover a set of literals
+    ///        which will be treated as a product.
+    /// @param  
+    /// @param a_literals 
+    /// @return 
     bool covers(
         const literal& a_literal,
-        const std::vector<literal>& a_literals
+        const literal_product a_product
     )
     {
-        return std::find(a_literals.begin(), a_literals.end(), a_literal) != a_literals.end();
+        return 
+            std::find(a_product.literals().begin(), a_product.literals().end(), a_literal) != 
+            a_product.literals().end();
     }
 
-    std::vector<literal> literal_difference(
+    literal_product difference_product(
         const satisfying_input&  a_satisfying_input,
         const unsatisfying_input& a_unsatisfying_input
     )
@@ -163,7 +175,7 @@ namespace digital_ai
             if (a_satisfying_input[i] != a_unsatisfying_input[i])
                 l_result.push_back(literal(i, !a_satisfying_input[i]));
         }
-        return l_result;
+        return literal_product(l_result);
     }
 
     bool try_get_maximally_covering_literal(
@@ -181,33 +193,19 @@ namespace digital_ai
 
         for (const unsatisfying_input* a_false_example : a_unsatisfying_inputs)
         {
-            std::vector<literal> l_literal_difference =
-                literal_difference(*a_satisfying_input, *a_false_example);
+            literal_product l_difference_product =
+                difference_product(*a_satisfying_input, *a_false_example);
             
             for (const literal& l_literal : a_current_covering_literals)
             {
-                if (covers(l_literal, l_literal_difference))
+                if (covers(l_literal, l_difference_product))
                     // Check if any of the literals in the covering product
                     // service so as to cover this difference product.
                     goto do_not_union;
             }
 
-            for (const literal& l_literal : l_literal_difference)
+            for (const literal& l_literal : l_difference_product.literals())
             {
-                // if (
-                //     std::find(
-                //         a_current_covering_literals.begin(),
-                //         a_current_covering_literals.end(),
-                //         l_literal
-                //     ) != a_current_covering_literals.end()
-                // )
-                // {
-                //     // If the literal has already been selected to use in the
-                //     // covering product, then this literal difference has already been covered.
-                //     // Just break.
-                //     break;
-                // }
-                
                 // Try to get the position of this literal within the unioned set.
                 std::vector<literal>::iterator l_literal_position = 
                     std::find(
@@ -233,7 +231,6 @@ namespace digital_ai
             }
 
             do_not_union:;
-            
         }
 
         if (l_unioned_literal_differences.size() == 0)

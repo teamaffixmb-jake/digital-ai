@@ -85,7 +85,7 @@ void test_data_partitioning(
 
 }
 
-void test_literal_difference(
+void test_difference_product(
 
 )
 {
@@ -93,25 +93,24 @@ void test_literal_difference(
         digital_ai::satisfying_input   l_satisfying_input({0, 1, 1, 0});
         digital_ai::unsatisfying_input l_unsatisfying_input({0, 1, 1, 1});
 
-        std::vector<digital_ai::literal> l_literal_difference =
-            digital_ai::literal_difference(l_satisfying_input, l_unsatisfying_input);
+        digital_ai::literal_product l_difference_product =
+            digital_ai::difference_product(l_satisfying_input, l_unsatisfying_input);
 
-        assert(l_literal_difference.size() == 1);
-        assert(l_literal_difference[0] == digital_ai::literal(3, true));
+        assert(l_difference_product.literals().size() == 1);
+        assert(l_difference_product.literals()[0] == digital_ai::literal(3, true));
     }
 
     {
         digital_ai::satisfying_input   l_satisfying_input({0, 1, 1, 0});
         digital_ai::unsatisfying_input l_unsatisfying_input({0, 0, 1, 1});
 
-        std::vector<digital_ai::literal> l_literal_difference =
-            digital_ai::literal_difference(l_satisfying_input, l_unsatisfying_input);
+        digital_ai::literal_product l_literal_difference =
+            digital_ai::difference_product(l_satisfying_input, l_unsatisfying_input);
 
-        assert(l_literal_difference.size() == 2);
-        assert(l_literal_difference[0] == digital_ai::literal(1, false));
-        assert(l_literal_difference[1] == digital_ai::literal(3, true));
+        assert(l_literal_difference.literals().size() == 2);
+        assert(l_literal_difference.literals()[0] == digital_ai::literal(1, false));
+        assert(l_literal_difference.literals()[1] == digital_ai::literal(3, true));
     }
-
 
 }
 
@@ -420,7 +419,7 @@ void unit_test_main(
 )
 {
     test_data_partitioning();
-    test_literal_difference();
+    test_difference_product();
     test_try_get_maximally_covering_literal();
     test_cover();
 }
