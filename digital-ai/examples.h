@@ -6,15 +6,21 @@
 
 namespace digital_ai
 {
+    /// @brief This struct has a bit string as input and output.
     struct raw_example
     {
         std::vector<bool> m_input;
         std::vector<bool> m_output;
     };
 
+    /// @brief This is a bit-string which does not satisfy the function which it is being inputted into.
     typedef std::vector<bool> unsatisfying_input;
+
+    /// @brief This is a bit-string which does satisfy the function which it is being inputted into.
     typedef std::vector<bool> satisfying_input;
 
+    /// @brief This struct has a set of unsatisfying inputs, and a set of satisfying inputs.
+    ///        These sets will be used for generalization later.
     struct partitioned_example_set
     {
         std::vector<unsatisfying_input*> m_unsatisfying_inputs;

@@ -163,6 +163,12 @@ namespace digital_ai
             a_product.literals().end();
     }
 
+    /// @brief A function which yields a product of literals where each literal is selected under the
+    ///        following conditions: the literal must be present in the satisfying input and must be absent
+    ///        in the unsatisfying input.
+    /// @param a_satisfying_input 
+    /// @param a_unsatisfying_input 
+    /// @return 
     literal_product difference_product(
         const satisfying_input&  a_satisfying_input,
         const unsatisfying_input& a_unsatisfying_input
@@ -178,6 +184,14 @@ namespace digital_ai
         return literal_product(l_result);
     }
 
+    /// @brief This function tries to get the single literal which maximally increases
+    ///        the size of the coverage over the difference product domain when appended
+    ///        to the current literal product "a_current_covering_literals".
+    /// @param a_current_covering_literals 
+    /// @param a_unsatisfying_inputs 
+    /// @param a_satisfying_input 
+    /// @param a_result 
+    /// @return 
     bool try_get_maximally_covering_literal(
         const std::vector<literal>& a_current_covering_literals,
         const std::vector<unsatisfying_input*>& a_unsatisfying_inputs,
@@ -251,6 +265,12 @@ namespace digital_ai
 
     }
 
+    /// @brief This function acquires a covering product. This covering product acts so as to cover
+    ///        one satisfying input and to do so while using few literals. None of the unsatisfying
+    ///        inputs will be covered by this product.
+    /// @param a_unsatisfying_inputs 
+    /// @param a_satisfying_input 
+    /// @return 
     literal_product cover(
         const std::vector<unsatisfying_input*>& a_unsatisfying_inputs,
         const satisfying_input* a_satisfying_input
@@ -276,6 +296,11 @@ namespace digital_ai
 
     }
 
+    /// @brief Gets a sum of covering products which when coupled, will cover all satisfying inputs.
+    ///        this will not cover any unsatisfying inputs. It will however cover some unresolved inputs.
+    ///        This is where the "generalization" occurred.
+    /// @param a_partitioned_example_set 
+    /// @return 
     sum_of_products generalize(
         const partitioned_example_set& a_partitioned_example_set
     )
@@ -294,6 +319,10 @@ namespace digital_ai
 
     }
 
+    /// @brief This will produce a vector of covering sums which each are designated to the bit output
+    ///        associated with their indices.
+    /// @param a_raw_examples 
+    /// @return 
     sum_of_products_string generalize(
         const std::vector<raw_example>& a_raw_examples
     )
@@ -301,7 +330,7 @@ namespace digital_ai
         std::vector<sum_of_products> l_output_bit_functions;
 
         // Create all of the output_bit_example_sets
-        for (int i = 0; i < a_raw_examples.size(); i++)
+        for (int i = 0; i < a_raw_examples[0].m_output.size(); i++)
         {
             l_output_bit_functions.push_back(generalize(partitioned_example_set(a_raw_examples, i)));
 
