@@ -77,6 +77,55 @@ namespace digital_ai
             return true;
         }
 
+        bool operator==(
+            const literal_product& a_literal_product
+        ) const
+        {
+            if (m_literals.size() != a_literal_product.m_literals.size())
+                return false;
+
+            // Make sure that every local literal is in the other literal product.
+            for (const literal& l_literal_0 : m_literals)
+            {
+                bool l_literal_is_shared = false;
+
+                for (const literal& l_literal_1 : a_literal_product.m_literals)
+                {
+                    if (l_literal_1 == l_literal_0)
+                    {
+                        l_literal_is_shared = true;
+                        break;
+                    }
+                }
+
+                if (!l_literal_is_shared)
+                    return false;
+
+            }
+
+            // Make sure that every literal in the other product is shared locally.
+            for (const literal& l_literal_0 : a_literal_product.m_literals)
+            {
+                bool l_literal_is_shared = false;
+
+                for (const literal& l_literal_1 : m_literals)
+                {
+                    if (l_literal_1 == l_literal_0)
+                    {
+                        l_literal_is_shared = true;
+                        break;
+                    }
+                }
+
+                if (!l_literal_is_shared)
+                    return false;
+
+            }
+
+            return true;
+            
+        }
+
         const std::vector<literal>& literals(
 
         ) const
@@ -109,6 +158,22 @@ namespace digital_ai
                 if (l_literal_product.evaluate(a_input))
                     return true;
             return false;
+        }
+
+        void simplify(
+
+        )
+        {
+            for (literal_product& l_literal_product_0 : m_literal_products)
+            {
+                for (literal_product& l_literal_product_1 : m_literal_products)
+                {
+                    if (l_literal_product_1 == l_literal_product_0)
+                    {
+                        
+                    }
+                }
+            }
         }
 
         const std::vector<literal_product>& literal_products(
@@ -144,6 +209,13 @@ namespace digital_ai
             for (int i = 0; i < l_result.size(); i++)
                 l_result[i] = m_binary_functions[i].evaluate(a_input);
             return l_result;
+        }
+
+        const std::vector<sum_of_products>& sums_of_products(
+
+        ) const
+        {
+            return m_binary_functions;
         }
 
     };

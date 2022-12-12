@@ -414,6 +414,217 @@ void test_cover(
 
 }
 
+void test_generalize(
+
+)
+{
+    {
+        std::vector<digital_ai::raw_example> l_raw_examples =
+        {
+            {{0, 0, 0, 0}, {0, 0, 0}},
+            {{0, 0, 0, 1}, {0, 0, 1}},
+            {{0, 0, 1, 1}, {0, 1, 1}},
+            {{0, 1, 1, 1}, {0, 1, 0}},
+            {{1, 0, 0, 1}, {1, 1, 0}},
+            {{1, 0, 1, 0}, {1, 1, 0}},
+            {{1, 0, 1, 1}, {0, 1, 0}},
+            {{1, 1, 1, 0}, {1, 1, 0}},
+            {{1, 1, 1, 1}, {0, 1, 0}},
+        };
+
+        digital_ai::partitioned_example_set l_partitioned_example_set(l_raw_examples, 0);
+
+        // This call takes into account all satisfying inputs and ALL unsatisfying inputs.
+        digital_ai::sum_of_products l_generalized = digital_ai::generalize(l_partitioned_example_set);
+    
+        // There should be three covering products since there are three satisfying inputs for
+        // output bit 0.
+        assert(l_generalized.literal_products().size() == 3);
+
+        assert(l_generalized.literal_products()[0].literals() == std::vector({
+            digital_ai::literal(0, false), digital_ai::literal(2, true)
+        }));
+        
+        assert(l_generalized.literal_products()[1].literals() == std::vector({
+            digital_ai::literal(3, true), digital_ai::literal(0, false)
+        }));
+
+        assert(l_generalized.literal_products()[2].literals() == std::vector({
+            digital_ai::literal(3, true), digital_ai::literal(0, false)
+        }));
+    
+    }
+
+    {
+        std::vector<digital_ai::raw_example> l_raw_examples =
+        {
+            {{0, 0, 0, 0}, {0, 0, 0}},
+            {{0, 0, 0, 1}, {0, 0, 1}},
+            {{0, 0, 1, 1}, {0, 1, 1}},
+            {{0, 1, 1, 1}, {0, 1, 0}},
+            {{1, 0, 0, 1}, {1, 1, 0}},
+            {{1, 0, 1, 0}, {1, 1, 0}},
+            {{1, 0, 1, 1}, {0, 1, 0}},
+            {{1, 1, 1, 0}, {1, 1, 0}},
+            {{1, 1, 1, 1}, {0, 1, 0}},
+        };
+
+        digital_ai::partitioned_example_set l_partitioned_example_set(l_raw_examples, 1);
+
+        // This call takes into account all satisfying inputs and ALL unsatisfying inputs.
+        digital_ai::sum_of_products l_generalized = digital_ai::generalize(l_partitioned_example_set);
+    
+        // There should be seven covering products since there are seven satisfying inputs for
+        // output bit 1.
+        assert(l_generalized.literal_products().size() == 7);
+
+        assert(l_generalized.literal_products()[0].literals() == std::vector({
+            digital_ai::literal(2, false)
+        }));
+        
+        assert(l_generalized.literal_products()[1].literals() == std::vector({
+            digital_ai::literal(1, false)
+        }));
+
+        assert(l_generalized.literal_products()[2].literals() == std::vector({
+            digital_ai::literal(0, false)
+        }));
+
+        assert(l_generalized.literal_products()[3].literals() == std::vector({
+            digital_ai::literal(0, false)
+        }));
+
+        assert(l_generalized.literal_products()[4].literals() == std::vector({
+            digital_ai::literal(0, false)
+        }));
+
+        assert(l_generalized.literal_products()[5].literals() == std::vector({
+            digital_ai::literal(0, false)
+        }));
+
+        assert(l_generalized.literal_products()[6].literals() == std::vector({
+            digital_ai::literal(0, false)
+        }));
+    
+    }
+
+    {
+        std::vector<digital_ai::raw_example> l_raw_examples =
+        {
+            {{0, 0, 0, 0}, {0, 0, 0}},
+            {{0, 0, 0, 1}, {0, 0, 1}},
+            {{0, 0, 1, 1}, {0, 1, 1}},
+            {{0, 1, 1, 1}, {0, 1, 0}},
+            {{1, 0, 0, 1}, {1, 1, 0}},
+            {{1, 0, 1, 0}, {1, 1, 0}},
+            {{1, 0, 1, 1}, {0, 1, 0}},
+            {{1, 1, 1, 0}, {1, 1, 0}},
+            {{1, 1, 1, 1}, {0, 1, 0}},
+        };
+
+        digital_ai::partitioned_example_set l_partitioned_example_set(l_raw_examples, 2);
+
+        // This call takes into account all satisfying inputs and ALL unsatisfying inputs.
+        digital_ai::sum_of_products l_generalized = digital_ai::generalize(l_partitioned_example_set);
+    
+        // There should be two covering products since there are two satisfying inputs for
+        // output bit 2.
+        assert(l_generalized.literal_products().size() == 2);
+
+        assert(l_generalized.literal_products()[0].literals() == std::vector({
+            digital_ai::literal(2, true), digital_ai::literal(3, false), digital_ai::literal(0, true)
+        }));
+        
+        assert(l_generalized.literal_products()[1].literals() == std::vector({
+            digital_ai::literal(0, true), digital_ai::literal(2, false), digital_ai::literal(1, true)
+        }));
+
+    }
+}
+
+void test_generalize_multi_output(
+
+)
+{
+    std::vector<digital_ai::raw_example> l_raw_examples =
+    {
+        {{0, 0, 0, 0}, {0, 0, 0}},
+        {{0, 0, 0, 1}, {0, 0, 1}},
+        {{0, 0, 1, 1}, {0, 1, 1}},
+        {{0, 1, 1, 1}, {0, 1, 0}},
+        {{1, 0, 0, 1}, {1, 1, 0}},
+        {{1, 0, 1, 0}, {1, 1, 0}},
+        {{1, 0, 1, 1}, {0, 1, 0}},
+        {{1, 1, 1, 0}, {1, 1, 0}},
+        {{1, 1, 1, 1}, {0, 1, 0}},
+    };
+
+    // This call takes into account all satisfying inputs and ALL unsatisfying inputs.
+    digital_ai::sum_of_products_string l_generalized = digital_ai::generalize(l_raw_examples);
+
+    // There should be three covering products since there are three satisfying inputs for
+    // output bit 0.
+    assert(l_generalized.sums_of_products()[0].literal_products().size() == 3);
+
+    assert(l_generalized.sums_of_products()[0].literal_products()[0].literals() == std::vector({
+        digital_ai::literal(0, false), digital_ai::literal(2, true)
+    }));
+    
+    assert(l_generalized.sums_of_products()[0].literal_products()[1].literals() == std::vector({
+        digital_ai::literal(3, true), digital_ai::literal(0, false)
+    }));
+
+    assert(l_generalized.sums_of_products()[0].literal_products()[2].literals() == std::vector({
+        digital_ai::literal(3, true), digital_ai::literal(0, false)
+    }));
+
+    // There should be seven covering products since there are seven satisfying inputs for
+    // output bit 1.
+    assert(l_generalized.sums_of_products()[1].literal_products().size() == 7);
+
+    assert(l_generalized.sums_of_products()[1].literal_products()[0].literals() == std::vector({
+        digital_ai::literal(2, false)
+    }));
+    
+    assert(l_generalized.sums_of_products()[1].literal_products()[1].literals() == std::vector({
+        digital_ai::literal(1, false)
+    }));
+
+    assert(l_generalized.sums_of_products()[1].literal_products()[2].literals() == std::vector({
+        digital_ai::literal(0, false)
+    }));
+
+    assert(l_generalized.sums_of_products()[1].literal_products()[3].literals() == std::vector({
+        digital_ai::literal(0, false)
+    }));
+
+    assert(l_generalized.sums_of_products()[1].literal_products()[4].literals() == std::vector({
+        digital_ai::literal(0, false)
+    }));
+
+    assert(l_generalized.sums_of_products()[1].literal_products()[5].literals() == std::vector({
+        digital_ai::literal(0, false)
+    }));
+
+    assert(l_generalized.sums_of_products()[1].literal_products()[6].literals() == std::vector({
+        digital_ai::literal(0, false)
+    }));
+
+    // There should be two covering products since there are two satisfying inputs for
+    // output bit 2.
+    assert(l_generalized.sums_of_products()[2].literal_products().size() == 2);
+
+    assert(l_generalized.sums_of_products()[2].literal_products()[0].literals() == std::vector({
+        digital_ai::literal(2, true), digital_ai::literal(3, false), digital_ai::literal(0, true)
+    }));
+    
+    assert(l_generalized.sums_of_products()[2].literal_products()[1].literals() == std::vector({
+        digital_ai::literal(0, true), digital_ai::literal(2, false), digital_ai::literal(1, true)
+    }));
+
+}
+
+
 void unit_test_main(
 
 )
@@ -422,6 +633,8 @@ void unit_test_main(
     test_difference_product();
     test_try_get_maximally_covering_literal();
     test_cover();
+    test_generalize();
+    test_generalize_multi_output();
 }
 
 int main(
