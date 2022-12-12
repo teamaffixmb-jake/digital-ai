@@ -115,12 +115,314 @@ void test_literal_difference(
 
 }
 
+void test_try_get_maximally_covering_literal(
+
+)
+{
+    {
+        std::vector<digital_ai::raw_example> l_raw_examples =
+        {
+            {{0, 0, 0, 0}, {0, 0, 0}},
+            {{0, 0, 0, 1}, {0, 0, 1}},
+            {{0, 0, 1, 1}, {0, 1, 1}},
+            {{0, 1, 1, 1}, {0, 1, 0}},
+            {{1, 0, 0, 1}, {1, 1, 0}}, // Using this one as our satisfying example of focus
+            {{1, 0, 1, 0}, {1, 1, 0}},
+            {{1, 0, 1, 1}, {0, 1, 0}},
+            {{1, 1, 1, 0}, {1, 1, 0}},
+            {{1, 1, 1, 1}, {0, 1, 0}},
+        };
+
+        digital_ai::partitioned_example_set l_partitioned_example_set(l_raw_examples, 0);
+
+        digital_ai::literal l_maximally_covering_literal;
+
+        // This call only takes into account a SINGLE satisfying input and ALL unsatisfying inputs.
+        bool l_success = digital_ai::try_get_maximally_covering_literal({},
+            l_partitioned_example_set.m_unsatisfying_inputs,
+            l_partitioned_example_set.m_satisfying_inputs[0], l_maximally_covering_literal);
+    
+        assert(l_success);
+        assert(l_maximally_covering_literal == digital_ai::literal(0, false));
+
+    }
+
+    {
+        std::vector<digital_ai::raw_example> l_raw_examples =
+        {
+            {{0, 0, 0, 0}, {0, 0, 0}},
+            {{0, 0, 0, 1}, {0, 0, 1}},
+            {{0, 0, 1, 1}, {0, 1, 1}},
+            {{0, 1, 1, 1}, {0, 1, 0}},
+            {{0, 0, 0, 1}, {1, 1, 0}}, // Using this one as our satisfying example of focus
+            {{0, 0, 1, 0}, {1, 1, 0}},
+            {{0, 0, 1, 1}, {0, 1, 0}},
+            {{0, 1, 1, 0}, {1, 1, 0}},
+            {{0, 1, 1, 1}, {0, 1, 0}},
+        };
+
+        digital_ai::partitioned_example_set l_partitioned_example_set(l_raw_examples, 0);
+
+        digital_ai::literal l_maximally_covering_literal;
+
+        // This call only takes into account a SINGLE satisfying input and ALL unsatisfying inputs.
+        bool l_success = digital_ai::try_get_maximally_covering_literal({},
+            l_partitioned_example_set.m_unsatisfying_inputs,
+            l_partitioned_example_set.m_satisfying_inputs[0], l_maximally_covering_literal);
+    
+        assert(l_success);
+        assert(l_maximally_covering_literal == digital_ai::literal(2, true));
+
+    }
+
+    {
+        std::vector<digital_ai::raw_example> l_raw_examples =
+        {
+            {{0, 0, 0, 0}, {0, 0, 0}},
+            {{0, 0, 0, 1}, {0, 0, 1}},
+            {{0, 0, 1, 1}, {0, 1, 1}},
+            {{0, 1, 1, 1}, {0, 1, 0}},
+            {{0, 0, 0, 1}, {1, 1, 0}},
+            {{0, 0, 1, 0}, {1, 1, 0}}, // Using this one as our satisfying example of focus
+            {{0, 0, 1, 1}, {0, 1, 0}},
+            {{0, 1, 1, 0}, {1, 1, 0}},
+            {{0, 1, 1, 1}, {0, 1, 0}},
+        };
+
+        digital_ai::partitioned_example_set l_partitioned_example_set(l_raw_examples, 0);
+
+        digital_ai::literal l_maximally_covering_literal;
+
+        // This call only takes into account a SINGLE satisfying input and ALL unsatisfying inputs.
+        bool l_success = digital_ai::try_get_maximally_covering_literal({},
+            l_partitioned_example_set.m_unsatisfying_inputs,
+            l_partitioned_example_set.m_satisfying_inputs[1], l_maximally_covering_literal);
+    
+        assert(l_success);
+        assert(l_maximally_covering_literal == digital_ai::literal(3, true));
+
+    }
+
+    {
+        std::vector<digital_ai::raw_example> l_raw_examples =
+        {
+            {{0, 1, 0, 0}, {0, 0, 0}},
+            {{0, 1, 0, 1}, {0, 0, 1}},
+            {{0, 1, 1, 1}, {0, 1, 1}},
+            {{0, 1, 1, 1}, {0, 1, 0}},
+            {{0, 1, 0, 1}, {1, 1, 0}},
+            {{0, 0, 1, 0}, {1, 1, 0}}, // Using this one as our satisfying example of focus
+            {{0, 1, 1, 1}, {0, 1, 0}},
+            {{0, 1, 1, 0}, {1, 1, 0}},
+            {{0, 1, 1, 1}, {0, 1, 0}},
+        };
+
+        digital_ai::partitioned_example_set l_partitioned_example_set(l_raw_examples, 0);
+
+        digital_ai::literal l_maximally_covering_literal;
+
+        // This call only takes into account a SINGLE satisfying input and ALL unsatisfying inputs.
+        bool l_success = digital_ai::try_get_maximally_covering_literal({},
+            l_partitioned_example_set.m_unsatisfying_inputs,
+            l_partitioned_example_set.m_satisfying_inputs[1], l_maximally_covering_literal);
+    
+        assert(l_success);
+        assert(l_maximally_covering_literal == digital_ai::literal(1, true));
+
+    }
+
+}
+
+void test_cover(
+
+)
+{
+    {
+        std::vector<digital_ai::raw_example> l_raw_examples =
+        {
+            {{0, 0, 0, 0}, {0, 0, 0}},
+            {{0, 0, 0, 1}, {0, 0, 1}},
+            {{0, 0, 1, 1}, {0, 1, 1}},
+            {{0, 1, 1, 1}, {0, 1, 0}},
+            {{1, 0, 0, 1}, {1, 1, 0}}, // Using this one as our satisfying example of focus
+            {{1, 0, 1, 0}, {1, 1, 0}},
+            {{1, 0, 1, 1}, {0, 1, 0}},
+            {{1, 1, 1, 0}, {1, 1, 0}},
+            {{1, 1, 1, 1}, {0, 1, 0}},
+        };
+
+        digital_ai::partitioned_example_set l_partitioned_example_set(l_raw_examples, 0);
+
+        // This call only takes into account a SINGLE satisfying input and ALL unsatisfying inputs.
+        digital_ai::literal_product l_covering_product = digital_ai::cover(
+            l_partitioned_example_set.m_unsatisfying_inputs,l_partitioned_example_set.m_satisfying_inputs[0]);
+    
+        assert(l_covering_product.literals() == std::vector({ digital_ai::literal(0, false), digital_ai::literal(2, true) }));
+    
+    }
+
+    {
+        std::vector<digital_ai::raw_example> l_raw_examples =
+        {
+            {{0, 0, 0, 0}, {0, 0, 0}},
+            {{0, 0, 0, 1}, {0, 0, 1}},
+            {{0, 0, 1, 1}, {0, 1, 1}},
+            {{0, 1, 1, 1}, {0, 1, 0}},
+            {{1, 0, 0, 1}, {1, 1, 0}}, 
+            {{1, 0, 1, 0}, {1, 1, 0}}, // Using this one as our satisfying example of focus
+            {{1, 0, 1, 1}, {0, 1, 0}},
+            {{1, 1, 1, 0}, {1, 1, 0}},
+            {{1, 1, 1, 1}, {0, 1, 0}},
+        };
+
+        digital_ai::partitioned_example_set l_partitioned_example_set(l_raw_examples, 0);
+
+        // This call only takes into account a SINGLE satisfying input and ALL unsatisfying inputs.
+        digital_ai::literal_product l_covering_product = digital_ai::cover(
+            l_partitioned_example_set.m_unsatisfying_inputs,l_partitioned_example_set.m_satisfying_inputs[1]);
+    
+        assert(l_covering_product.literals() == std::vector({ digital_ai::literal(3, true), digital_ai::literal(0, false) }));
+    
+    }
+
+    {
+        std::vector<digital_ai::raw_example> l_raw_examples =
+        {
+            {{0, 0, 0, 0}, {0, 0, 0}},
+            {{0, 0, 0, 1}, {0, 0, 1}},
+            {{0, 0, 1, 1}, {0, 1, 1}},
+            {{0, 1, 1, 1}, {0, 1, 0}},
+            {{1, 0, 0, 1}, {1, 1, 0}}, 
+            {{1, 0, 1, 0}, {1, 1, 0}},
+            {{1, 0, 1, 1}, {0, 1, 0}},
+            {{1, 1, 1, 0}, {1, 1, 0}}, // Using this one as our satisfying example of focus
+            {{1, 1, 1, 1}, {0, 1, 0}},
+        };
+
+        digital_ai::partitioned_example_set l_partitioned_example_set(l_raw_examples, 0);
+
+        // This call only takes into account a SINGLE satisfying input and ALL unsatisfying inputs.
+        digital_ai::literal_product l_covering_product = digital_ai::cover(
+            l_partitioned_example_set.m_unsatisfying_inputs,l_partitioned_example_set.m_satisfying_inputs[2]);
+    
+        assert(l_covering_product.literals() == std::vector({ digital_ai::literal(3, true), digital_ai::literal(0, false) }));
+    
+    }
+
+    {
+        std::vector<digital_ai::raw_example> l_raw_examples =
+        {
+            {{0, 0, 0, 0}, {0, 0, 0}},
+            {{0, 0, 0, 1}, {0, 0, 1}},
+            {{0, 0, 1, 0}, {0, 1, 0}},
+            {{0, 0, 1, 1}, {0, 1, 1}},
+            {{0, 1, 0, 0}, {0, 1, 0}},
+            {{0, 1, 0, 1}, {0, 1, 0}},
+            {{0, 1, 1, 0}, {1, 1, 0}}, // Using this one as our satisfying example of focus
+            {{0, 1, 1, 1}, {0, 1, 0}},
+            {{1, 0, 0, 0}, {1, 1, 0}},
+            {{1, 0, 0, 1}, {1, 1, 0}},
+            {{1, 0, 1, 0}, {1, 1, 0}},
+            {{1, 0, 1, 1}, {0, 1, 0}},
+            {{1, 1, 0, 0}, {1, 1, 0}},
+            {{1, 1, 0, 1}, {1, 1, 1}},
+            {{1, 1, 1, 0}, {1, 1, 0}},
+            {{1, 1, 1, 1}, {0, 1, 0}},
+        };
+
+        digital_ai::partitioned_example_set l_partitioned_example_set(l_raw_examples, 0);
+
+        // This call only takes into account a SINGLE satisfying input and ALL unsatisfying inputs.
+        digital_ai::literal_product l_covering_product = digital_ai::cover(
+            l_partitioned_example_set.m_unsatisfying_inputs,l_partitioned_example_set.m_satisfying_inputs[0]);
+    
+        assert(l_covering_product.literals() == std::vector({ digital_ai::literal(3, true), digital_ai::literal(1, false), digital_ai::literal(2, false) }));
+    
+    }
+
+    {
+        // In this example, the only position in which there is a satisfying input is when minterm 0'123' is satisfied.
+        // Therefore, what we derive should equal this minterm. No generalization can take place here.
+        std::vector<digital_ai::raw_example> l_raw_examples =
+        {
+            {{0, 0, 0, 0}, {0, 0, 0}},
+            {{0, 0, 0, 1}, {0, 0, 1}},
+            {{0, 0, 1, 0}, {0, 1, 0}},
+            {{0, 0, 1, 1}, {0, 1, 1}},
+            {{0, 1, 0, 0}, {0, 1, 0}},
+            {{0, 1, 0, 1}, {0, 1, 0}},
+            {{0, 1, 1, 0}, {1, 1, 0}}, // Using this one as our satisfying example of focus
+            {{0, 1, 1, 1}, {0, 1, 0}},
+            {{1, 0, 0, 0}, {0, 1, 0}},
+            {{1, 0, 0, 1}, {0, 1, 0}},
+            {{1, 0, 1, 0}, {0, 1, 0}},
+            {{1, 0, 1, 1}, {0, 1, 0}},
+            {{1, 1, 0, 0}, {0, 1, 0}},
+            {{1, 1, 0, 1}, {0, 1, 1}},
+            {{1, 1, 1, 0}, {0, 1, 0}},
+            {{1, 1, 1, 1}, {0, 1, 0}},
+        };
+
+        digital_ai::partitioned_example_set l_partitioned_example_set(l_raw_examples, 0);
+
+        // This call only takes into account a SINGLE satisfying input and ALL unsatisfying inputs.
+        digital_ai::literal_product l_covering_product = digital_ai::cover(
+            l_partitioned_example_set.m_unsatisfying_inputs,l_partitioned_example_set.m_satisfying_inputs[0]);
+    
+        assert(l_covering_product.literals() == 
+            std::vector({ 
+                digital_ai::literal(1, false),
+                digital_ai::literal(2, false),
+                digital_ai::literal(3, true),
+                digital_ai::literal(0, true) }));
+    
+    }
+
+    {
+        // In this example, the only position in which there is a satisfying input is when minterm 0'123' is satisfied.
+        // Therefore, what we derive should equal this minterm. No generalization can take place here.
+        std::vector<digital_ai::raw_example> l_raw_examples =
+        {
+            {{0, 0, 0, 0}, {0, 0, 0}},
+            {{0, 0, 0, 1}, {0, 0, 1}},
+            {{0, 0, 1, 0}, {0, 1, 0}}, // Using this one as our satisfying example of focus
+            {{0, 0, 1, 1}, {0, 1, 1}},
+            {{0, 1, 0, 0}, {0, 1, 0}},
+            {{0, 1, 0, 1}, {0, 1, 0}},
+            {{0, 1, 1, 0}, {1, 1, 0}},
+            {{0, 1, 1, 1}, {0, 1, 0}},
+            {{1, 0, 0, 0}, {0, 1, 0}},
+            {{1, 0, 0, 1}, {0, 1, 0}},
+            {{1, 0, 1, 0}, {0, 1, 0}},
+            {{1, 0, 1, 1}, {0, 1, 0}},
+            {{1, 1, 0, 0}, {0, 1, 0}},
+            {{1, 1, 0, 1}, {0, 1, 1}},
+            {{1, 1, 1, 0}, {0, 1, 0}},
+            {{1, 1, 1, 1}, {0, 1, 0}},
+        };
+
+        digital_ai::partitioned_example_set l_partitioned_example_set(l_raw_examples, 1);
+
+        // This call only takes into account a SINGLE satisfying input and ALL unsatisfying inputs.
+        digital_ai::literal_product l_covering_product = digital_ai::cover(
+            l_partitioned_example_set.m_unsatisfying_inputs,l_partitioned_example_set.m_satisfying_inputs[0]);
+    
+        assert(l_covering_product.literals() == 
+            std::vector({ 
+                digital_ai::literal(2, false) }));
+    
+    }
+
+}
+
 void unit_test_main(
 
 )
 {
     test_data_partitioning();
     test_literal_difference();
+    test_try_get_maximally_covering_literal();
+    test_cover();
 }
 
 int main(

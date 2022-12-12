@@ -75,6 +75,13 @@ namespace digital_ai
             return true;
         }
 
+        const std::vector<literal>& literals(
+
+        ) const
+        {
+            return m_literals;
+        }
+
     };
 
     class sum_of_products
@@ -99,6 +106,13 @@ namespace digital_ai
                 if (l_literal_product.evaluate(a_input))
                     return true;
             return false;
+        }
+
+        const std::vector<literal_product>& literal_products(
+
+        ) const
+        {
+            return m_literal_products;
         }
 
     };
@@ -128,6 +142,14 @@ namespace digital_ai
         }
 
     };
+
+    bool covers(
+        const literal& a_literal,
+        const std::vector<literal>& a_literals
+    )
+    {
+        return std::find(a_literals.begin(), a_literals.end(), a_literal) != a_literals.end();
+    }
 
     std::vector<literal> literal_difference(
         const satisfying_input&  a_satisfying_input,
@@ -162,21 +184,29 @@ namespace digital_ai
             std::vector<literal> l_literal_difference =
                 literal_difference(*a_satisfying_input, *a_false_example);
             
+            for (const literal& l_literal : a_current_covering_literals)
+            {
+                if (covers(l_literal, l_literal_difference))
+                    // Check if any of the literals in the covering product
+                    // service so as to cover this difference product.
+                    goto do_not_union;
+            }
+
             for (const literal& l_literal : l_literal_difference)
             {
-                if (
-                    std::find(
-                        a_current_covering_literals.begin(),
-                        a_current_covering_literals.end(),
-                        l_literal
-                    ) != a_current_covering_literals.end()
-                )
-                {
-                    // If the literal has already been selected to use in the
-                    // covering product, just ignore this literal and
-                    // do not append it to the unioned set.
-                    continue;
-                }
+                // if (
+                //     std::find(
+                //         a_current_covering_literals.begin(),
+                //         a_current_covering_literals.end(),
+                //         l_literal
+                //     ) != a_current_covering_literals.end()
+                // )
+                // {
+                //     // If the literal has already been selected to use in the
+                //     // covering product, then this literal difference has already been covered.
+                //     // Just break.
+                //     break;
+                // }
                 
                 // Try to get the position of this literal within the unioned set.
                 std::vector<literal>::iterator l_literal_position = 
@@ -201,6 +231,8 @@ namespace digital_ai
                 l_unioned_literal_differences_counts[l_literal_index]++;
 
             }
+
+            do_not_union:;
             
         }
 
