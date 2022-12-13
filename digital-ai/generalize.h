@@ -300,8 +300,7 @@ namespace digital_ai
     /// @return 
     bool try_get_maximally_covering_literal(
         const std::vector<literal>& a_current_covering_literals,
-        const std::vector<unsatisfying_input*>& a_unsatisfying_inputs,
-        const satisfying_input* a_satisfying_input,
+        const std::vector<std::vector<literal>>& a_literal_differences,
         literal& a_result
     )
     {
@@ -309,13 +308,10 @@ namespace digital_ai
         // between the one-example provided and one of the zero-examples.
 
         std::vector<literal> l_unioned_literal_differences;
-        std::vector<size_t>         l_unioned_literal_differences_counts;
+        std::vector<size_t>  l_unioned_literal_differences_counts;
 
-        for (const unsatisfying_input* a_false_example : a_unsatisfying_inputs)
+        for (const std::vector<literal>& l_literal_difference : a_literal_differences)
         {
-            std::vector<literal> l_literal_difference =
-                literal_difference(*a_satisfying_input, *a_false_example);
-            
             for (const literal& l_literal : a_current_covering_literals)
             {
                 if (covers(l_literal, l_literal_difference))
@@ -384,12 +380,17 @@ namespace digital_ai
     {
         std::vector<literal> l_covering_literals;
         literal l_covering_literal;
+
+        std::vector<std::vector<literal>> l_literal_differences(a_unsatisfying_inputs.size());
+
+        // Precompute all literal differences before trying to generalize
+        for (int i = 0; i < l_literal_differences.size(); i++)
+            l_literal_differences[i] = literal_difference(*a_satisfying_input, *a_unsatisfying_inputs[i]);
         
         while(
             try_get_maximally_covering_literal(
                 l_covering_literals,
-                a_unsatisfying_inputs,
-                a_satisfying_input,
+                l_literal_differences,
                 l_covering_literal
             )
         )
