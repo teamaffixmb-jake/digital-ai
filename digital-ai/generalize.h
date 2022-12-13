@@ -77,6 +77,10 @@ namespace digital_ai
             return true;
         }
 
+        /// @brief This operator determines if the argued literal product is
+        ///        functionally equal to the local literal product.
+        /// @param a_literal_product 
+        /// @return 
         bool operator==(
             const literal_product& a_literal_product
         ) const
@@ -124,6 +128,13 @@ namespace digital_ai
 
             return true;
             
+        }
+
+        bool operator!=(
+            const literal_product& a_literal_product
+        ) const
+        {
+            return !operator==(a_literal_product);
         }
 
         const std::vector<literal>& literals(
@@ -280,9 +291,8 @@ namespace digital_ai
         return l_result;
     }
 
-    /// @brief This function tries to get the single literal which maximally increases
-    ///        the size of the coverage over the difference product domain when appended
-    ///        to the current literal product "a_current_covering_literals".
+    /// @brief This function tries to get the single literal which restricts coverage maximally
+    ///        over the unsatisfying inputs.
     /// @param a_current_covering_literals 
     /// @param a_unsatisfying_inputs 
     /// @param a_satisfying_input 

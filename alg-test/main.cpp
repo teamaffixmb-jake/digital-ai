@@ -2,6 +2,73 @@
 #include <iostream>
 #include <assert.h>
 
+void test_literal_product_equivalence(
+
+)
+{
+    {
+        digital_ai::literal_product l_literal_product_0({
+            digital_ai::literal(0, false),
+            digital_ai::literal(1, false),
+            digital_ai::literal(2, false),});
+        digital_ai::literal_product l_literal_product_1({
+            digital_ai::literal(0, false),
+            digital_ai::literal(2, false),
+            digital_ai::literal(1, false),});
+        assert(l_literal_product_0 == l_literal_product_1);
+    }
+
+    {
+        digital_ai::literal_product l_literal_product_0({
+            digital_ai::literal(0, false),
+            digital_ai::literal(1, false),
+            digital_ai::literal(2, false),});
+        digital_ai::literal_product l_literal_product_1({
+            digital_ai::literal(2, false),
+            digital_ai::literal(1, false),});
+        assert(l_literal_product_0 != l_literal_product_1);
+    }
+
+    {
+        digital_ai::literal_product l_literal_product_0({
+            digital_ai::literal(0, false),
+            digital_ai::literal(3, true),
+            digital_ai::literal(2, false),});
+        digital_ai::literal_product l_literal_product_1({
+            digital_ai::literal(3, true),
+            digital_ai::literal(2, false),
+            digital_ai::literal(0, false),});
+        assert(l_literal_product_0 == l_literal_product_1);
+    }
+
+    {
+        digital_ai::literal_product l_literal_product_0({
+            digital_ai::literal(0, false),
+            digital_ai::literal(3, true),
+            digital_ai::literal(2, false)
+        });
+        digital_ai::literal_product l_literal_product_1({
+            digital_ai::literal(3, false),
+            digital_ai::literal(2, false),
+            digital_ai::literal(0, false)
+        });
+        assert(l_literal_product_0 != l_literal_product_1);
+    }
+}
+
+void test_literal_difference(
+
+)
+{
+    {
+        digital_ai::satisfying_input l_satisfying_input =     { 0, 0, 1, 0, 0 };
+        digital_ai::unsatisfying_input l_unsatisfying_input = { 0, 0, 0, 0, 0 };
+        std::vector<digital_ai::literal> l_literal_difference = digital_ai::literal_difference(l_satisfying_input, l_unsatisfying_input);
+        assert(l_literal_difference.size() == 1);
+        assert(l_literal_difference[0] == digital_ai::literal(2, false));
+    }
+}
+
 void test_data_partitioning(
 
 )
@@ -635,6 +702,8 @@ void unit_test_main(
 
 )
 {
+    test_literal_product_equivalence();
+    test_literal_difference();
     test_data_partitioning();
     test_difference_product();
     test_try_get_maximally_covering_literal();
@@ -643,11 +712,86 @@ void unit_test_main(
     test_generalize_multi_output();
 }
 
+void add_8_bit_numbers_test(
+
+)
+{
+    auto l_random_byte = [](
+
+    )
+    {
+        std::vector<bool> l_result(8);
+        for (int i = 0; i < l_result.size(); i++)
+            l_result[i] = (rand() % 2);
+        return l_result;
+    };
+
+    auto l_sum_and_carry = [](
+        const std::vector<bool>& a_byte_0,
+        const std::vector<bool>& a_byte_1
+    )
+    {
+        std::vector<bool> l_result(9);
+        bool l_c = false;
+        for (int i = a_byte_0.size() - 1; i >= 0; i--)
+        {
+            bool l_s = 
+                !a_byte_0[i] && !a_byte_1[i] && l_c ||
+                !a_byte_0[i] && a_byte_1[i] && !l_c ||
+                a_byte_0[i] && !a_byte_1[i] && !l_c ||
+                a_byte_0[i] && a_byte_1[i] && l_c;
+            l_result[i] = l_s;
+            l_c =
+                !a_byte_0[i] && a_byte_1[i] && l_c ||
+                a_byte_0[i] && !a_byte_1[i] && l_c ||
+                a_byte_0[i] && a_byte_1[i] && !l_c ||
+                a_byte_0[i] && a_byte_1[i] && l_c;
+        }
+        l_result.back() = l_c;
+        return l_result;
+    };
+
+    // Input is 16-bit (two 8-bit strings)
+    // Output is 9-bit (8-bit sum and 1-bit carry)
+    std::vector<digital_ai::raw_example> l_raw_examples;
+
+    size_t l_training_sets_count = 500;
+
+    for (int i = 0; i < l_training_sets_count; i++)
+    {
+        std::vector<bool> l_byte_0 = l_random_byte();
+        std::vector<bool> l_byte_1 = l_random_byte();
+        
+        std::vector<bool> l_concatenated_input;
+        l_concatenated_input.insert(l_concatenated_input.end(), l_byte_0.begin(), l_byte_0.end());
+        l_concatenated_input.insert(l_concatenated_input.end(), l_byte_1.begin(), l_byte_1.end());
+
+        std::vector<bool> l_desired = l_sum_and_carry(l_byte_0, l_byte_1);
+
+        l_raw_examples.push_back({l_concatenated_input, l_desired});
+
+    }
+
+    digital_ai::sum_of_products_string l_sops = digital_ai::generalize(l_raw_examples);
+    l_sops.simplify();
+
+    std::vector<bool> l_test_byte_0 = l_random_byte();
+    std::vector<bool> l_test_byte_1 = l_random_byte();
+
+    std::vector<bool> l_concatenated;
+    l_concatenated.insert(l_concatenated.end(), l_test_byte_0.begin(), l_test_byte_0.end());
+    l_concatenated.insert(l_concatenated.end(), l_test_byte_1.begin(), l_test_byte_1.end());
+
+    std::vector<bool> l_evaluated = l_sops.evaluate(l_concatenated);
+
+}
+
 int main(
 
 )
 {
-    unit_test_main();
+    add_8_bit_numbers_test();
+    //unit_test_main();
 
     return 0;
 }
