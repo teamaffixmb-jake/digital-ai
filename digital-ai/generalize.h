@@ -265,7 +265,7 @@ namespace digital_ai
     /// @param a_satisfying_input 
     /// @param a_unsatisfying_input 
     /// @return 
-    literal_product difference_product(
+    std::vector<literal> literal_difference(
         const satisfying_input&  a_satisfying_input,
         const unsatisfying_input& a_unsatisfying_input
     )
@@ -277,7 +277,7 @@ namespace digital_ai
             if (a_satisfying_input[i] != a_unsatisfying_input[i])
                 l_result.push_back(literal(i, !a_satisfying_input[i]));
         }
-        return literal_product(l_result);
+        return l_result;
     }
 
     /// @brief This function tries to get the single literal which maximally increases
@@ -303,18 +303,18 @@ namespace digital_ai
 
         for (const unsatisfying_input* a_false_example : a_unsatisfying_inputs)
         {
-            literal_product l_difference_product =
-                difference_product(*a_satisfying_input, *a_false_example);
+            std::vector<literal> l_literal_difference =
+                literal_difference(*a_satisfying_input, *a_false_example);
             
             for (const literal& l_literal : a_current_covering_literals)
             {
-                if (covers(l_literal, l_difference_product))
+                if (covers(l_literal, l_literal_difference))
                     // Check if any of the literals in the covering product
                     // service so as to cover this difference product.
                     goto do_not_union;
             }
 
-            for (const literal& l_literal : l_difference_product.literals())
+            for (const literal& l_literal : l_literal_difference)
             {
                 // Try to get the position of this literal within the unioned set.
                 std::vector<literal>::iterator l_literal_position = 
