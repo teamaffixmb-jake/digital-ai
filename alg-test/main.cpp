@@ -1,6 +1,7 @@
 #include "digital-ai/generalize.h"
 #include <iostream>
 #include <assert.h>
+#include <numeric>
 
 void test_literal_product_equivalence(
 
@@ -53,19 +54,6 @@ void test_literal_product_equivalence(
             digital_ai::literal(0, false)
         });
         assert(l_literal_product_0 != l_literal_product_1);
-    }
-}
-
-void test_literal_difference(
-
-)
-{
-    {
-        digital_ai::satisfying_input l_satisfying_input =     { 0, 0, 1, 0, 0 };
-        digital_ai::unsatisfying_input l_unsatisfying_input = { 0, 0, 0, 0, 0 };
-        std::vector<digital_ai::literal> l_literal_difference = digital_ai::literal_difference(l_satisfying_input, l_unsatisfying_input);
-        assert(l_literal_difference.size() == 1);
-        assert(l_literal_difference[0] == digital_ai::literal(2, false));
     }
 }
 
@@ -148,35 +136,6 @@ void test_data_partitioning(
         assert((std::vector<bool>*)l_partitioned_example_set.m_unsatisfying_inputs.front() == l_first_unsatisfying);
         assert((std::vector<bool>*)l_partitioned_example_set.m_unsatisfying_inputs.back() == l_last_unsatisfying);
 
-    }
-
-}
-
-void test_difference_product(
-
-)
-{
-    {
-        digital_ai::satisfying_input   l_satisfying_input({0, 1, 1, 0});
-        digital_ai::unsatisfying_input l_unsatisfying_input({0, 1, 1, 1});
-
-        digital_ai::literal_product l_difference_product =
-            digital_ai::literal_difference(l_satisfying_input, l_unsatisfying_input);
-
-        assert(l_difference_product.literals().size() == 1);
-        assert(l_difference_product.literals()[0] == digital_ai::literal(3, true));
-    }
-
-    {
-        digital_ai::satisfying_input   l_satisfying_input({0, 1, 1, 0});
-        digital_ai::unsatisfying_input l_unsatisfying_input({0, 0, 1, 1});
-
-        digital_ai::literal_product l_literal_difference =
-            digital_ai::literal_difference(l_satisfying_input, l_unsatisfying_input);
-
-        assert(l_literal_difference.literals().size() == 2);
-        assert(l_literal_difference.literals()[0] == digital_ai::literal(1, false));
-        assert(l_literal_difference.literals()[1] == digital_ai::literal(3, true));
     }
 
 }
@@ -319,10 +278,10 @@ void test_cover(
     
         assert(l_covering_product.literals() == 
             std::vector({ 
+                digital_ai::literal(0, true),
                 digital_ai::literal(1, false),
                 digital_ai::literal(2, false),
-                digital_ai::literal(3, true),
-                digital_ai::literal(0, true) }));
+                digital_ai::literal(3, true) }));
     
     }
 
@@ -481,11 +440,11 @@ void test_generalize(
         assert(l_generalized.literal_products().size() == 2);
 
         assert(l_generalized.literal_products()[0].literals() == std::vector({
-            digital_ai::literal(2, true), digital_ai::literal(3, false), digital_ai::literal(0, true)
+            digital_ai::literal(0, true), digital_ai::literal(1, true), digital_ai::literal(3, false)
         }));
         
         assert(l_generalized.literal_products()[1].literals() == std::vector({
-            digital_ai::literal(0, true), digital_ai::literal(2, false), digital_ai::literal(1, true)
+            digital_ai::literal(0, true), digital_ai::literal(1, true), digital_ai::literal(2, false)
         }));
 
     }
@@ -564,11 +523,11 @@ void test_generalize_multi_output(
     assert(l_generalized.sums_of_products()[2].literal_products().size() == 2);
 
     assert(l_generalized.sums_of_products()[2].literal_products()[0].literals() == std::vector({
-        digital_ai::literal(2, true), digital_ai::literal(3, false), digital_ai::literal(0, true)
+        digital_ai::literal(0, true), digital_ai::literal(1, true), digital_ai::literal(3, false)
     }));
     
     assert(l_generalized.sums_of_products()[2].literal_products()[1].literals() == std::vector({
-        digital_ai::literal(0, true), digital_ai::literal(2, false), digital_ai::literal(1, true)
+        digital_ai::literal(0, true), digital_ai::literal(1, true), digital_ai::literal(2, false)
     }));
 
 
@@ -585,9 +544,7 @@ void unit_test_main(
 )
 {
     test_literal_product_equivalence();
-    test_literal_difference();
     test_data_partitioning();
-    test_difference_product();
     test_cover();
     test_generalize();
     test_generalize_multi_output();
@@ -636,7 +593,7 @@ void add_8_bit_numbers_test(
     // Output is 9-bit (8-bit sum and 1-bit carry)
     std::vector<digital_ai::raw_example> l_raw_examples;
 
-    size_t l_training_sets_count = 500;
+    size_t l_training_sets_count = 20000;
 
     for (int i = 0; i < l_training_sets_count; i++)
     {
@@ -653,17 +610,43 @@ void add_8_bit_numbers_test(
 
     }
 
+    //auto l_start =  std::chrono::high_resolution_clock::now();
+
     digital_ai::sum_of_products_string l_sops = digital_ai::generalize(l_raw_examples);
+    
+    //auto l_stop =  std::chrono::high_resolution_clock::now();
+
+    //std::cout << std::chrono::duration_cast<std::chrono::seconds>(l_stop - l_start).count() << std::endl;
+
     l_sops.simplify();
 
-    std::vector<bool> l_test_byte_0 = l_random_byte();
-    std::vector<bool> l_test_byte_1 = l_random_byte();
+    const size_t l_number_of_tests = 10;
 
-    std::vector<bool> l_concatenated;
-    l_concatenated.insert(l_concatenated.end(), l_test_byte_0.begin(), l_test_byte_0.end());
-    l_concatenated.insert(l_concatenated.end(), l_test_byte_1.begin(), l_test_byte_1.end());
+    for (int i = 0; i < l_number_of_tests; i++)
+    {
+        std::vector<bool> l_test_byte_0 = l_random_byte();
+        std::vector<bool> l_test_byte_1 = l_random_byte();
 
-    std::vector<bool> l_evaluated = l_sops.evaluate(l_concatenated);
+        std::vector<bool> l_concatenated;
+        l_concatenated.insert(l_concatenated.end(), l_test_byte_0.begin(), l_test_byte_0.end());
+        l_concatenated.insert(l_concatenated.end(), l_test_byte_1.begin(), l_test_byte_1.end());
+
+        std::vector<bool> l_evaluated = l_sops.evaluate(l_concatenated);
+
+        for (const bool& l_bool : l_test_byte_0)
+            std::cout << l_bool << " ";
+        std::cout << std::endl;
+
+        for (const bool& l_bool : l_test_byte_1)
+            std::cout << l_bool << " ";
+        std::cout << std::endl;
+
+        for (const bool& l_bool : l_evaluated)
+            std::cout << l_bool << " ";
+        std::cout << std::endl << std::endl;
+
+    }
+
 
 }
 

@@ -4,6 +4,10 @@
 #include "examples.h"
 #include <assert.h>
 #include <algorithm>
+#include <map>
+#include <chrono>
+#include <iostream>
+#include <future>
 
 namespace digital_ai
 {
@@ -255,113 +259,56 @@ namespace digital_ai
 
     };
 
-    /// @brief This function defines whether a given literal will cover a set of literals
-    ///        which will be treated as a product.
-    /// @param  
-    /// @param a_literals 
+    /// @brief This function returns the element-wise xor of the two argued
+    ///        bit-strings.
+    /// @param a_x0 
+    /// @param a_x1 
     /// @return 
-    bool covers(
-        const literal& a_literal,
-        const literal_product a_product
+    std::vector<bool> bit_string_xor(
+        const std::vector<bool>& a_x0,
+        const std::vector<bool>& a_x1
     )
     {
-        return 
-            std::find(a_product.literals().begin(), a_product.literals().end(), a_literal) != 
-            a_product.literals().end();
-    }
-
-    /// @brief A function which yields a product of literals where each literal is selected under the
-    ///        following conditions: the literal must be present in the satisfying input and must be absent
-    ///        in the unsatisfying input.
-    /// @param a_satisfying_input 
-    /// @param a_unsatisfying_input 
-    /// @return 
-    std::vector<literal> literal_difference(
-        const satisfying_input&  a_satisfying_input,
-        const unsatisfying_input& a_unsatisfying_input
-    )
-    {
-        assert(a_satisfying_input.size() == a_unsatisfying_input.size());
-        std::vector<literal> l_result;
-        for (int i = 0; i < a_satisfying_input.size(); i++)
-        {
-            if (a_satisfying_input[i] != a_unsatisfying_input[i])
-                l_result.push_back(literal(i, !a_satisfying_input[i]));
-        }
+        assert(a_x0.size() == a_x1.size());
+        std::vector<bool> l_result(a_x0.size());
+        for (int i = 0; i < l_result.size(); i++)
+            l_result[i] = a_x0[i] != a_x1[i];
         return l_result;
     }
 
     /// @brief This function tries to get the single literal which restricts coverage maximally
     ///        over the unsatisfying inputs.
-    /// @param a_current_covering_literals 
-    /// @param a_unsatisfying_inputs 
+    /// @param a_current_covering_literals
+    /// @param a_unsatisfying_inputs
     /// @param a_satisfying_input 
     /// @param a_result 
-    /// @return 
+    /// @return
     bool try_get_maximally_covering_literal(
-        const std::vector<literal>& a_current_covering_literals,
-        const std::vector<std::vector<literal>>& a_literal_differences,
-        literal& a_result
+        const std::vector<std::vector<bool>>& a_input_xors,
+        const std::vector<bool>& a_input_xors_checked,
+        size_t& a_result
     )
     {
-        // Generate a vector of literals, for which there exist at least one difference
-        // between the one-example provided and one of the zero-examples.
+        // Make a vector of the number of occurrances of a bit's xor being a 1.
+        std::vector<size_t> l_bit_xor_enable_counts(a_input_xors[0].size());
 
-        std::vector<literal> l_unioned_literal_differences;
-        std::vector<size_t>  l_unioned_literal_differences_counts;
-
-        for (const std::vector<literal>& l_literal_difference : a_literal_differences)
+        for (int i = 0; i < a_input_xors.size(); i++)
         {
-            for (const literal& l_literal : a_current_covering_literals)
-            {
-                if (covers(l_literal, l_literal_difference))
-                    // Check if any of the literals in the covering product
-                    // service so as to cover this difference product.
-                    goto do_not_union;
-            }
+            if (a_input_xors_checked[i])
+                continue;
+            
+            for (int j = 0; j < l_bit_xor_enable_counts.size(); j++)
+                l_bit_xor_enable_counts[j] += a_input_xors[i][j];
 
-            for (const literal& l_literal : l_literal_difference)
-            {
-                // Try to get the position of this literal within the unioned set.
-                std::vector<literal>::iterator l_literal_position = 
-                    std::find(
-                        l_unioned_literal_differences.begin(), l_unioned_literal_differences.end(),
-                        l_literal);
-                
-                if (l_literal_position == l_unioned_literal_differences.end())
-                {
-                    // Insert the literal into the unioned set.
-                    l_literal_position = 
-                        l_unioned_literal_differences.insert(
-                        l_unioned_literal_differences.end(), l_literal);
-                    
-                    // Insert the count into the unioned literal count set.
-                    l_unioned_literal_differences_counts.push_back(0);
-                }
-                
-                size_t l_literal_index = l_literal_position - l_unioned_literal_differences.begin();
-
-                // Increment the count associated with literal.
-                l_unioned_literal_differences_counts[l_literal_index]++;
-
-            }
-
-            do_not_union:;
         }
 
-        if (l_unioned_literal_differences.size() == 0)
-            // Since no literal differences were incurred, return indicating that fact.
+        a_result = 
+            std::max_element(l_bit_xor_enable_counts.begin(), l_bit_xor_enable_counts.end()) -
+            l_bit_xor_enable_counts.begin();
+
+        // If the maximum occuring literal's occurrance was zero, just return false.
+        if (l_bit_xor_enable_counts[a_result] == 0)
             return false;
-
-        // Get the index of the largest count in all the literal occurance counts.
-        size_t l_maximum_literal_occurance_count = 
-            std::max_element(
-                l_unioned_literal_differences_counts.begin(),
-                l_unioned_literal_differences_counts.end())
-            - l_unioned_literal_differences_counts.begin();
-
-        // Set the result to be the literal associated with this count.
-        a_result = l_unioned_literal_differences[l_maximum_literal_occurance_count];
 
         return true;
 
@@ -378,26 +325,43 @@ namespace digital_ai
         const satisfying_input* a_satisfying_input
     )
     {
-        std::vector<literal> l_covering_literals;
-        literal l_covering_literal;
-
-        std::vector<std::vector<literal>> l_literal_differences(a_unsatisfying_inputs.size());
+        std::vector<std::vector<bool>> l_input_xors(a_unsatisfying_inputs.size());
+        std::vector<bool>              l_input_xors_checked(a_unsatisfying_inputs.size());
 
         // Precompute all literal differences before trying to generalize
-        for (int i = 0; i < l_literal_differences.size(); i++)
-            l_literal_differences[i] = literal_difference(*a_satisfying_input, *a_unsatisfying_inputs[i]);
+        for (int i = 0; i < l_input_xors.size(); i++)
+            l_input_xors[i] = bit_string_xor(*a_satisfying_input, *a_unsatisfying_inputs[i]);
         
+        std::vector<literal> l_covering_literals;
+        size_t l_selected_literal_index = 0;
+
+        //auto l_start = std::chrono::high_resolution_clock::now();
+
         while(
             try_get_maximally_covering_literal(
-                l_covering_literals,
-                l_literal_differences,
-                l_covering_literal
+                l_input_xors,
+                l_input_xors_checked,
+                l_selected_literal_index
             )
         )
         {
             // Append the maximally covering literal to the list
-            l_covering_literals.push_back(l_covering_literal);
+            l_covering_literals.push_back(literal(l_selected_literal_index, !a_satisfying_input->at(l_selected_literal_index)));
+
+            // Roll through, indicating which input xor's have been checked already.
+            for (int i = 0; i < l_input_xors.size(); i++)
+            {
+                if (l_input_xors[i][l_selected_literal_index] == 1)
+                    l_input_xors_checked[i] = true;
+            }
+
         }
+
+        //auto l_end = std::chrono::high_resolution_clock::now();
+
+        //auto l_microseconds = std::chrono::duration_cast<std::chrono::microseconds>(l_end - l_start);
+
+        //std::cout << l_microseconds.count() << std::endl;
 
         return literal_product(l_covering_literals);
 
@@ -434,14 +398,21 @@ namespace digital_ai
         const std::vector<raw_example>& a_raw_examples
     )
     {
-        std::vector<sum_of_products> l_output_bit_functions;
+        std::vector<std::future<sum_of_products>> l_async_output_bit_functions;
 
         // Create all of the output_bit_example_sets
         for (int i = 0; i < a_raw_examples[0].m_output.size(); i++)
         {
-            l_output_bit_functions.push_back(generalize(partitioned_example_set(a_raw_examples, i)));
-
+            // Do work asynchronously so as to reduce compute time.
+            l_async_output_bit_functions.push_back(
+                std::async(std::launch::async, [&, i]{ return generalize(partitioned_example_set(a_raw_examples, i)); }));
         }
+
+        std::vector<sum_of_products> l_output_bit_functions;
+        
+        // Resolve all asynchronous outputs.
+        for (int i = 0; i < l_async_output_bit_functions.size(); i++)
+            l_output_bit_functions.push_back(l_async_output_bit_functions[i].get());
 
         return sum_of_products_string(l_output_bit_functions);
 

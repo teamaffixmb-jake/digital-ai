@@ -2,6 +2,7 @@ SOURCES=$(wildcard *.cpp)
 OBJECTS=$(patsubst %.cpp, %.o, $(SOURCES))
 
 CPPFLAGS+=-g
+CPPFLAGS+=-O2
 CPPFLAGS+=-std=c++20
 CPPFLAGS+=-pthread
 CPPFLAGS+=-I.
