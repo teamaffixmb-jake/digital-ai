@@ -1,5 +1,6 @@
 SOURCES=$(wildcard *.cpp)
 OBJECTS=$(patsubst %.cpp, %.o, $(SOURCES))
+HEADERS=$(wildcard ../digital-ai/*.h)
 
 CPPFLAGS+=-g
 CPPFLAGS+=-O2
@@ -16,9 +17,9 @@ $(BINARY): $(OBJECTS)
 	# Build the final binary
 	g++ $(CPPFLAGS) -o $@ $^
 
-%.o: %.cpp
+%.o: %.cpp $(HEADERS)
 	# Build a single object file
-	g++ $(CPPFLAGS) -c -o $@ $^
+	g++ $(CPPFLAGS) -c -o $@ $<
 
 clean:
 	rm -rf *.o
