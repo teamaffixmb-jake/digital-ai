@@ -564,7 +564,7 @@ void unit_test_main(
 }
 
 void add_8_bit_numbers_test(
-
+    
 )
 {
     auto l_random_byte = [](
@@ -636,39 +636,40 @@ void add_8_bit_numbers_test(
         std::cout << "DURATION OF GENERALIZATION   : " << l_duration << std::endl;
         std::cout << "TRAINING SETS PER MILLISECOND: " << (double)l_training_sets_count / (double)l_duration << std::endl;
 
+        l_sops.simplify();
+
+        const size_t l_number_of_tests = 3;
+
+        for (int i = 0; i < l_number_of_tests; i++)
+        {
+            std::vector<bool> l_test_byte_0 = l_random_byte();
+            std::vector<bool> l_test_byte_1 = l_random_byte();
+
+            std::vector<bool> l_concatenated;
+            l_concatenated.insert(l_concatenated.end(), l_test_byte_0.begin(), l_test_byte_0.end());
+            l_concatenated.insert(l_concatenated.end(), l_test_byte_1.begin(), l_test_byte_1.end());
+
+            std::vector<bool> l_evaluated = l_sops.evaluate(l_concatenated);
+
+            for (const bool& l_bool : l_test_byte_0)
+                std::cout << l_bool << " ";
+            std::cout << std::endl;
+
+            for (const bool& l_bool : l_test_byte_1)
+                std::cout << l_bool << " ";
+            std::cout << std::endl;
+
+            for (const bool& l_bool : l_evaluated)
+                std::cout << l_bool << " ";
+            std::cout << std::endl << std::endl;
+
+        }
+
     }
 
 
     // std::cout << "yo test" << std::endl;
 
-    // l_sops.simplify();
-
-    // const size_t l_number_of_tests = 3;
-
-    // for (int i = 0; i < l_number_of_tests; i++)
-    // {
-    //     std::vector<bool> l_test_byte_0 = l_random_byte();
-    //     std::vector<bool> l_test_byte_1 = l_random_byte();
-
-    //     std::vector<bool> l_concatenated;
-    //     l_concatenated.insert(l_concatenated.end(), l_test_byte_0.begin(), l_test_byte_0.end());
-    //     l_concatenated.insert(l_concatenated.end(), l_test_byte_1.begin(), l_test_byte_1.end());
-
-    //     std::vector<bool> l_evaluated = l_sops.evaluate(l_concatenated);
-
-    //     for (const bool& l_bool : l_test_byte_0)
-    //         std::cout << l_bool << " ";
-    //     std::cout << std::endl;
-
-    //     for (const bool& l_bool : l_test_byte_1)
-    //         std::cout << l_bool << " ";
-    //     std::cout << std::endl;
-
-    //     for (const bool& l_bool : l_evaluated)
-    //         std::cout << l_bool << " ";
-    //     std::cout << std::endl << std::endl;
-
-    // }
 
 
 }
