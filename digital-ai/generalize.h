@@ -7,8 +7,6 @@
 #include <map>
 #include <chrono>
 #include <iostream>
-#include <future>
-#include <set>
 #include <math.h>
 
 namespace digital_ai
@@ -68,6 +66,25 @@ namespace digital_ai
         ) const
         {
             return m_invert;
+        }
+
+        bool operator<(
+            const literal& a_literal
+        ) const
+        {
+            if (m_index < a_literal.index())
+                return true;
+            if (m_index > a_literal.index())
+                return false;
+            
+            // If we make it here, then the indices were equal. Now, compare m_invert.
+
+            if (!m_invert && a_literal.invert())
+                return true;
+
+            // Default is false, since it is a non-inclusive inequality.
+            return false;
+
         }
 
 
@@ -284,154 +301,20 @@ namespace digital_ai
 
     };
 
-    template<typename RETURN_TYPE, typename INPUT_TYPE>
-    class cache
-    {
-    private:
-        std::function<RETURN_TYPE(const INPUT_TYPE&)> m_function;
-        std::unordered_map<INPUT_TYPE*, RETURN_TYPE*> m_map;
-        size_t m_maximum_size = 0;
-
-    public:
-        virtual ~cache(
-
-        )
-        {
-            for (auto l_it = m_map.begin(); l_it != m_map.end(); l_it++)
-            {
-                delete l_it->first;
-                delete l_it->second;
-            }
-        }
-
-        cache(
-            const std::function<RETURN_TYPE(const INPUT_TYPE&)>& a_function,
-            const size_t& a_size
-        ) :
-            m_function(a_function),
-            m_maximum_size(a_size)
-        {
-            
-        }
-
-        RETURN_TYPE evaluate(
-            const INPUT_TYPE& a_input
-        )
-        {
-            auto l_position = std::find_if(m_map.begin(), m_map.end(),
-                [&](std::unordered_map<INPUT_TYPE*, RETURN_TYPE*>::value_type l_value)
-                {
-                    return *l_value.first == a_input;
-                });
-            
-            if (l_position == m_map.end())
-            {
-                // The cached (input, output) pair could not be found.
-                
-                if (m_map.size() >= m_maximum_size)
-                {
-                    // Erase the oldest cache to have been accessed
-                    delete m_map.begin()->first;
-                    delete m_map.begin()->second;
-                    m_map.erase(m_map.begin());
-                }
-
-                // Compute the result manually using the function
-                RETURN_TYPE l_result = m_function(a_input);
-
-                // Insert the result into the end of the map, to signify that it was
-                // the most recently accessed resource from the cache.  
-                m_map.emplace(new INPUT_TYPE(a_input), new RETURN_TYPE(l_result));
-
-                return l_result;
-
-            }
-
-            INPUT_TYPE*  l_dynamically_allocated_input = l_position->first;
-            RETURN_TYPE* l_dynamically_allocated_result = l_position->second;
-
-            // Erase the element at whatever position it was at
-            m_map.erase(l_position);
-
-            // Make the element at the end so as to indicate
-            // that it was accessed most recently.
-            m_map.emplace(l_dynamically_allocated_input, l_dynamically_allocated_result);
-
-            return *l_dynamically_allocated_result;
-
-        }
-    
-    };
-
-    // /// @brief This function returns the element-wise xor of the two argued
-    // ///        bit-strings.
-    // /// @param a_x0 
-    // /// @param a_x1 
-    // /// @return 
-    // std::vector<bool> bit_string_xor(
-    //     const std::vector<bool>& a_x0,
-    //     const std::vector<bool>& a_x1
-    // )
-    // {
-    //     assert(a_x0.size() == a_x1.size());
-    //     std::vector<bool> l_result(a_x0.size());
-    //     for (int i = 0; i < l_result.size(); i++)
-    //         l_result[i] = a_x0[i] != a_x1[i];
-    //     return l_result;
-    // }
-
-    // /// @brief This function tries to get the single literal which restricts coverage maximally
-    // ///        over the unsatisfying inputs.
-    // /// @param a_current_covering_literals
-    // /// @param a_unsatisfying_inputs
-    // /// @param a_satisfying_input 
-    // /// @param a_result 
-    // /// @return
-    // bool try_get_maximally_covering_literal(
-    //     const std::vector<std::vector<bool>>& a_input_xors,
-    //     const std::vector<bool>& a_input_xors_checked,
-    //     size_t& a_result
-    // )
-    // {
-    //     // Make a vector of the number of occurrances of a bit's xor being a 1.
-    //     std::vector<size_t> l_bit_xor_enable_counts(a_input_xors[0].size());
-
-    //     for (int i = 0; i < a_input_xors.size(); i++)
-    //     {
-    //         if (a_input_xors_checked[i])
-    //             continue;
-            
-    //         for (int j = 0; j < l_bit_xor_enable_counts.size(); j++)
-    //             l_bit_xor_enable_counts[j] += a_input_xors[i][j];
-
-    //     }
-
-    //     a_result = 
-    //         std::max_element(l_bit_xor_enable_counts.begin(), l_bit_xor_enable_counts.end()) -
-    //         l_bit_xor_enable_counts.begin();
-
-    //     // If the maximum occuring literal's occurrance was zero, just return false.
-    //     if (l_bit_xor_enable_counts[a_result] == 0)
-    //         return false;
-
-    //     return true;
-
-    // }
-
-    struct input_specific_unsatisfying_coverage
-    {
-        std::vector<unsatisfying_input*> m_enabled_coverage;
-        std::vector<unsatisfying_input*> m_disabled_coverage;
-    };
-
-    std::vector<input_specific_unsatisfying_coverage> potential_unsatisfying_coverage(
+    std::map<literal, std::vector<unsatisfying_input*>> literal_coverage(
         const std::vector<unsatisfying_input*>& a_covered_unsatisfying_inputs
     )
     {
         // Create the "what-if" literal coverage vector which describes the
         // unsatisfying inputs that will be covered given the selection of any given literal
         // and the current covering product's literals.
-        std::vector<input_specific_unsatisfying_coverage> l_result(a_covered_unsatisfying_inputs.front()->size());
+        std::map<literal, std::vector<unsatisfying_input*>> l_result;
+
+        for (int i = 0; i < a_covered_unsatisfying_inputs[0]->size(); i++)
+        {
+            l_result.emplace(literal(i, false), std::vector<unsatisfying_input*>());
+            l_result.emplace(literal(i, true), std::vector<unsatisfying_input*>());
+        }
         
         for (unsatisfying_input* l_unsatisfying_input : a_covered_unsatisfying_inputs)
         {
@@ -439,10 +322,10 @@ namespace digital_ai
             {
                 if (l_unsatisfying_input->at(i))
                     // Make a note that this unsatisfying input contains the non-inverted literal.
-                    l_result[i].m_enabled_coverage.push_back(l_unsatisfying_input);
+                    l_result[literal(i, false)].push_back(l_unsatisfying_input);
                 else
                     // Make a note that this unsatisfying input contains the inverted literal.
-                    l_result[i].m_disabled_coverage.push_back(l_unsatisfying_input);
+                    l_result[literal(i, true)].push_back(l_unsatisfying_input);
             }
         }
 
@@ -450,79 +333,124 @@ namespace digital_ai
 
     }
 
-    /// @brief This function acquires a covering product. This covering product acts so as to cover
-    ///        one satisfying input and to do so while using few literals. None of the unsatisfying
-    ///        inputs will be covered by this product.
-    /// @param a_unsatisfying_inputs 
-    /// @param a_satisfying_input 
-    /// @return 
-    literal_product cover(
-        digital_ai::cache<std::vector<digital_ai::input_specific_unsatisfying_coverage>, 
-            std::vector<digital_ai::unsatisfying_input*>>& a_cache,
-        const std::vector<unsatisfying_input*>& a_covered_unsatisfying_inputs,
-        const satisfying_input* a_satisfying_input
-    )
+    class literal_coverage_tree
     {
-        //auto l_start_time = std::chrono::high_resolution_clock::now();
+    private:
+        std::vector<unsatisfying_input*> m_coverage;
+        std::vector<literal> m_covering_literals;
+        size_t m_coverage_size;
+        std::map<literal, literal_coverage_tree> m_subcoverages;
+        bool m_subcoverages_realized = false;
 
-        std::vector<unsatisfying_input*> l_covered_unsatisfying_inputs = a_covered_unsatisfying_inputs;
-
-        std::vector<literal> l_literals;
-        
-        while(l_covered_unsatisfying_inputs.size() > 0)
+    public:
+        literal_coverage_tree(
+            const std::vector<unsatisfying_input*>& a_coverage,
+            const std::vector<literal>& a_covering_literals = {}
+        ) :
+            m_coverage(a_coverage),
+            m_coverage_size(a_coverage.size()),
+            m_covering_literals(a_covering_literals)
         {
-            std::vector<input_specific_unsatisfying_coverage> l_potential_unsatisfying_coverage =
-                a_cache.evaluate(l_covered_unsatisfying_inputs);
             
-            literal l_minimally_covering_literal;
-            size_t l_unsatisfying_coverage = SIZE_MAX;
+        }
 
-            for (int i = 0; i < a_satisfying_input->size(); i++)
+        literal_product covering_product(
+            const satisfying_input* a_satisfying_input
+        )
+        {
+            literal_coverage_tree* l_minimal_literal_coverage_tree = this;
+
+            while(l_minimal_literal_coverage_tree->m_coverage_size > 0)
             {
-                // Get the literal which minimally covers the unsatisfying part of the domain.
-                if (a_satisfying_input->at(i))
-                {
-                    // Check enabled literal
-                    if (l_potential_unsatisfying_coverage[i].m_enabled_coverage.size() < l_unsatisfying_coverage)
-                    {
-                        l_minimally_covering_literal = literal(i, false);
-                        l_unsatisfying_coverage = l_potential_unsatisfying_coverage[i].m_enabled_coverage.size();
-                    }
-                }
-                else
-                {
-                    // Check disabled literal
-                    if (l_potential_unsatisfying_coverage[i].m_disabled_coverage.size() < l_unsatisfying_coverage)
-                    {
-                        l_minimally_covering_literal = literal(i, true);
-                        l_unsatisfying_coverage = l_potential_unsatisfying_coverage[i].m_disabled_coverage.size();
-                    }
-                }
+                l_minimal_literal_coverage_tree =
+                    &l_minimal_literal_coverage_tree->minimal_literal_coverage_tree(a_satisfying_input);
+            }
+
+            return literal_product(l_minimal_literal_coverage_tree->m_covering_literals);
+            
+        }
+
+    private:
+        void realize_subcoverages(
+
+        )
+        {
+            // First, get the raw literal coverage.
+            std::map<literal, std::vector<unsatisfying_input*>> l_literal_coverage = literal_coverage(
+                m_coverage
+            );
+
+            for (auto l_it = l_literal_coverage.begin(); l_it != l_literal_coverage.end(); l_it++)
+            {
+                if (m_covering_literals.end() != std::find(
+                        m_covering_literals.begin(), m_covering_literals.end(), 
+                        l_it->first))
+                    // Just ignore this literal since one of the ancestors to this node 
+                    // already was this literal.
+                    continue;
+
+                if (m_covering_literals.end() != std::find(
+                        m_covering_literals.begin(), m_covering_literals.end(),
+                        literal(l_it->first.index(), !l_it->first.invert())))
+                    // Just ignore this literal since one of the ancestors to this node 
+                    // already was the inverted form of this literal.
+                    continue;
+
+                std::vector<literal> l_covering_literals = m_covering_literals;
+
+                l_covering_literals.push_back(l_it->first);
+
+                // Generate subtrees for each literal coverage.
+                m_subcoverages.emplace(l_it->first, literal_coverage_tree(l_it->second, l_covering_literals));
 
             }
 
-            l_literals.push_back(l_minimally_covering_literal);
+            // The coverage of the lineage of literals leading up to this node
+            // is no longer useful. Erase it to preserve memory.
+            m_coverage.clear();
 
-            if (l_minimally_covering_literal.invert())
-            {
-                l_covered_unsatisfying_inputs =
-                    l_potential_unsatisfying_coverage[l_minimally_covering_literal.index()].m_disabled_coverage;
-            }
-            else
-            {
-                l_covered_unsatisfying_inputs =
-                    l_potential_unsatisfying_coverage[l_minimally_covering_literal.index()].m_enabled_coverage;
-            }
+            // The m_ignore_literals variable was a latent one, just waiting to be used in the case of this single call.
+            // It can now be erased.
+            m_covering_literals.clear();
+
+            // Indicate that the subcoverages have now been realized.
+            m_subcoverages_realized = true;
 
         }
 
-        //auto l_end_time = std::chrono::high_resolution_clock::now();
+        literal_coverage_tree& minimal_literal_coverage_tree(
+            const satisfying_input* a_satisfying_input
+        )
+        {
+            // This function call will realize the subcoverages, before returning the
+            // tree whose root has minimal literal coverage.
+            if (!m_subcoverages_realized)
+            {
+                realize_subcoverages();
+            }
+            
+            literal_coverage_tree* l_minimal_literal_coverage_tree = nullptr;
 
-        //std::cout << std::chrono::duration_cast<std::chrono::microseconds>(l_end_time - l_start_time).count() << std::endl;
+            for (auto l_it = m_subcoverages.begin(); l_it != m_subcoverages.end(); l_it++)
+            {
+                // First, check to make sure that the literal exists within
+                // the satisfying input.
+                bool l_literal_exists_within_satisfying_input = 
+                    a_satisfying_input->at(l_it->first.index()) != l_it->first.invert();
 
-        return literal_product(l_literals);
+                if (l_literal_exists_within_satisfying_input &&
+                    ((l_minimal_literal_coverage_tree == nullptr) ||
+                    l_it->second.m_coverage_size < l_minimal_literal_coverage_tree->m_coverage_size))
+                {
+                    l_minimal_literal_coverage_tree = &l_it->second;
+                }
+            }
 
-    }
+            return *l_minimal_literal_coverage_tree;
+            
+        }
+
+    };
 
     /// @brief Gets a sum of covering products which when coupled, will cover all satisfying inputs.
     ///        this will not cover any unsatisfying inputs. It will however cover some unresolved inputs.
@@ -530,20 +458,17 @@ namespace digital_ai
     /// @param a_partitioned_example_set 
     /// @return 
     sum_of_products generalize(
-        digital_ai::cache<std::vector<digital_ai::input_specific_unsatisfying_coverage>, 
-            std::vector<digital_ai::unsatisfying_input*>>& a_cache,
         const partitioned_example_set& a_partitioned_example_set
     )
     {
+        literal_coverage_tree l_literal_coverage_tree(a_partitioned_example_set.m_unsatisfying_inputs);
+
         std::vector<literal_product> l_covering_products;
         
         for (int i = 0; i < a_partitioned_example_set.m_satisfying_inputs.size(); i++)
         {
-            l_covering_products.push_back(cover(
-                a_cache,
-                a_partitioned_example_set.m_unsatisfying_inputs,
-                a_partitioned_example_set.m_satisfying_inputs[i]
-            ));
+            l_covering_products.push_back(
+                l_literal_coverage_tree.covering_product(a_partitioned_example_set.m_satisfying_inputs[i]));
         }
 
         return sum_of_products(l_covering_products);
@@ -555,32 +480,14 @@ namespace digital_ai
     /// @param a_raw_examples 
     /// @return 
     sum_of_products_string generalize(
-        digital_ai::cache<std::vector<digital_ai::input_specific_unsatisfying_coverage>, 
-            std::vector<digital_ai::unsatisfying_input*>>& a_cache,
         const std::vector<raw_example>& a_raw_examples
     )
     {
-        // std::vector<std::future<sum_of_products>> l_async_output_bit_functions;
-
-        // // Create all of the output_bit_example_sets
-        // for (int i = 0; i < a_raw_examples[0].m_output.size(); i++)
-        // {
-        //     // Do work asynchronously so as to reduce compute time.
-        //     l_async_output_bit_functions.push_back(
-        //         std::async(std::launch::async, [&, i]{ return generalize(a_cache, partitioned_example_set(a_raw_examples, i)); }));
-        // }
-
-        // std::vector<sum_of_products> l_output_bit_functions;
-        
-        // // Resolve all asynchronous outputs.
-        // for (int i = 0; i < l_async_output_bit_functions.size(); i++)
-        //     l_output_bit_functions.push_back(l_async_output_bit_functions[i].get());
-
         std::vector<sum_of_products> l_output_bit_functions;
 
         for (int i = 0; i < a_raw_examples[0].m_output.size(); i++)
         {
-            l_output_bit_functions.push_back(generalize(a_cache, partitioned_example_set(a_raw_examples, i)));
+            l_output_bit_functions.push_back(generalize(partitioned_example_set(a_raw_examples, i)));
         }
 
         return sum_of_products_string(l_output_bit_functions);

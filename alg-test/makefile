@@ -15,11 +15,12 @@ all: $(BINARY)
 $(BINARY): $(OBJECTS)
 	# Build the final binary
 	g++ $(CPPFLAGS) -o $@ $^
-	
+
 %.o: %.cpp
 	# Build a single object file
 	g++ $(CPPFLAGS) -c -o $@ $^
-	
+
 clean:
 	rm -rf *.o
 	rm -rf $(BINARY)
+
