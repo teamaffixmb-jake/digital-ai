@@ -18,7 +18,7 @@ $(BINARY): $(OBJECTS)
 	g++ $(CPPFLAGS) -o $@ $^
 
 %.o: %.cpp $(HEADERS)
-	# Build a single object file
+	# Build a single object file (the $< token means the FIRST dependency in the list. (the %.cpp file))
 	g++ $(CPPFLAGS) -c -o $@ $<
 
 clean:
