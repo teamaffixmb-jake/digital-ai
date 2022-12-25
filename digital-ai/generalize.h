@@ -336,19 +336,15 @@ namespace digital_ai
     class literal_coverage_tree
     {
     private:
-        std::vector<unsatisfying_input*> m_coverage;
+        std::vector<unsatisfying_input*> m_additional_coverage;
         std::vector<literal> m_covering_literals;
         size_t m_coverage_size;
         std::map<literal, literal_coverage_tree> m_subcoverages;
-        bool m_subcoverages_realized = false;
 
     public:
         literal_coverage_tree(
-            const std::vector<unsatisfying_input*>& a_coverage,
             const std::vector<literal>& a_covering_literals = {}
         ) :
-            m_coverage(a_coverage),
-            m_coverage_size(a_coverage.size()),
             m_covering_literals(a_covering_literals)
         {
             
@@ -372,12 +368,12 @@ namespace digital_ai
 
     private:
         void realize_subcoverages(
-
+            
         )
         {
             // First, get the raw literal coverage.
             std::map<literal, std::vector<unsatisfying_input*>> l_literal_coverage = literal_coverage(
-                m_coverage
+                m_additional_coverage
             );
 
             for (auto l_it = l_literal_coverage.begin(); l_it != l_literal_coverage.end(); l_it++)
@@ -401,20 +397,25 @@ namespace digital_ai
                 l_covering_literals.push_back(l_it->first);
 
                 // Generate subtrees for each literal coverage.
-                m_subcoverages.emplace(l_it->first, literal_coverage_tree(l_it->second, l_covering_literals));
+                std::map<literal, literal_coverage_tree>::iterator l_subtree = m_subcoverages.find(l_it->first);
+                
+                if (l_subtree == m_subcoverages.end())
+                {
+                    l_subtree =
+                        m_subcoverages.emplace(l_it->first, literal_coverage_tree(l_covering_literals)).first;
+                }
+
+                l_subtree->second.add_coverage(l_literal_coverage[l_it->first]);
 
             }
 
             // The coverage of the lineage of literals leading up to this node
             // is no longer useful. Erase it to preserve memory.
-            m_coverage.clear();
+            m_additional_coverage.clear();
 
             // The m_ignore_literals variable was a latent one, just waiting to be used in the case of this single call.
             // It can now be erased.
             m_covering_literals.clear();
-
-            // Indicate that the subcoverages have now been realized.
-            m_subcoverages_realized = true;
 
         }
 
@@ -424,7 +425,8 @@ namespace digital_ai
         {
             // This function call will realize the subcoverages, before returning the
             // tree whose root has minimal literal coverage.
-            if (!m_subcoverages_realized)
+            
+            if (m_additional_coverage.size() > 0)
             {
                 realize_subcoverages();
             }
@@ -448,6 +450,19 @@ namespace digital_ai
 
             return *l_minimal_literal_coverage_tree;
             
+        }
+
+        void add_coverage(
+            const std::vector<unsatisfying_input*>& a_additional_coverage
+        )
+        {
+            // Insert the additional coverage into the vector of total unsatisfying coverage
+            // for this node.
+            m_additional_coverage.insert(m_additional_coverage.end(), a_additional_coverage.begin(), a_additional_coverage.end());
+            
+            // Increase the total coverage size.
+            m_coverage_size += a_additional_coverage.size();
+
         }
 
     };

@@ -638,6 +638,8 @@ void add_8_bit_numbers_test(
 
         l_sops.simplify();
 
+        std::cout << l_sops.sums_of_products()[0].literal_products()[0].literals().size() << std::endl;
+
         const size_t l_number_of_tests = 3;
 
         for (int i = 0; i < l_number_of_tests; i++)
@@ -667,10 +669,7 @@ void add_8_bit_numbers_test(
 
     }
 
-
     // std::cout << "yo test" << std::endl;
-
-
 
 }
 
