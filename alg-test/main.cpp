@@ -625,7 +625,7 @@ void add_8_bit_numbers_test(
         {
             std::vector<bool> l_byte_0 = l_random_byte();
             std::vector<bool> l_byte_1 = l_random_byte();
-            
+
             std::vector<bool> l_concatenated_input;
             l_concatenated_input.insert(l_concatenated_input.end(), l_byte_0.begin(), l_byte_0.end());
             l_concatenated_input.insert(l_concatenated_input.end(), l_byte_1.begin(), l_byte_1.end());

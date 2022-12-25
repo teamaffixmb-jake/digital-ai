@@ -468,8 +468,8 @@ namespace digital_ai
     /// @brief Gets a sum of covering products which when coupled, will cover all satisfying inputs.
     ///        this will not cover any unsatisfying inputs. It will however cover some unresolved inputs.
     ///        This is where the "generalization" occurred.
-    /// @param a_partitioned_example_set 
-    /// @return 
+    /// @param a_partitioned_example_set
+    /// @return
     sum_of_products generalize(
         const partitioned_example_set& a_partitioned_example_set
     )
@@ -492,17 +492,17 @@ namespace digital_ai
 
     /// @brief This will produce a vector of covering sums which each are designated to the bit output
     ///        associated with their indices.
-    /// @param a_raw_examples 
+    /// @param a_additional_raw_examples 
     /// @return 
     sum_of_products_string generalize(
-        const std::vector<raw_example>& a_raw_examples
+        const std::vector<raw_example>& a_additional_raw_examples
     )
     {
         std::vector<sum_of_products> l_output_bit_functions;
 
-        for (int i = 0; i < a_raw_examples[0].m_output.size(); i++)
+        for (int i = 0; i < a_additional_raw_examples[0].m_output.size(); i++)
         {
-            l_output_bit_functions.push_back(generalize(partitioned_example_set(a_raw_examples, i)));
+            l_output_bit_functions.push_back(generalize(partitioned_example_set(a_additional_raw_examples, i)));
         }
 
         return sum_of_products_string(l_output_bit_functions);
