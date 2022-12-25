@@ -336,9 +336,9 @@ namespace digital_ai
     class literal_coverage_tree
     {
     private:
-        std::vector<unsatisfying_input*> m_additional_coverage;
         std::vector<literal> m_covering_literals;
-        size_t m_coverage_size;
+        size_t m_coverage_size = 0;
+        std::vector<unsatisfying_input*> m_unprocessed_coverage;
         std::map<literal, literal_coverage_tree> m_subcoverages;
 
     public:
@@ -348,6 +348,19 @@ namespace digital_ai
             m_covering_literals(a_covering_literals)
         {
             
+        }
+
+        void add_coverage(
+            const std::vector<unsatisfying_input*>& a_additional_coverage
+        )
+        {
+            // Insert the additional coverage into the vector of total unsatisfying coverage
+            // for this node.
+            m_unprocessed_coverage.insert(m_unprocessed_coverage.end(), a_additional_coverage.begin(), a_additional_coverage.end());
+            
+            // Increase the total coverage size.
+            m_coverage_size += a_additional_coverage.size();
+
         }
 
         literal_product covering_product(
@@ -373,7 +386,7 @@ namespace digital_ai
         {
             // First, get the raw literal coverage.
             std::map<literal, std::vector<unsatisfying_input*>> l_literal_coverage = literal_coverage(
-                m_additional_coverage
+                m_unprocessed_coverage
             );
 
             for (auto l_it = l_literal_coverage.begin(); l_it != l_literal_coverage.end(); l_it++)
@@ -409,13 +422,9 @@ namespace digital_ai
 
             }
 
-            // The coverage of the lineage of literals leading up to this node
+            // The unprocessed coverage of the lineage of literals leading up to this node
             // is no longer useful. Erase it to preserve memory.
-            m_additional_coverage.clear();
-
-            // The m_ignore_literals variable was a latent one, just waiting to be used in the case of this single call.
-            // It can now be erased.
-            m_covering_literals.clear();
+            m_unprocessed_coverage.clear();
 
         }
 
@@ -425,9 +434,11 @@ namespace digital_ai
         {
             // This function call will realize the subcoverages, before returning the
             // tree whose root has minimal literal coverage.
-            
-            if (m_additional_coverage.size() > 0)
+
+            if (m_unprocessed_coverage.size() > 0)
             {
+                // Only realize the subcoverages if it must be done,
+                // assuming the unprocessed coverage has a size larger than zero.
                 realize_subcoverages();
             }
             
@@ -452,19 +463,6 @@ namespace digital_ai
             
         }
 
-        void add_coverage(
-            const std::vector<unsatisfying_input*>& a_additional_coverage
-        )
-        {
-            // Insert the additional coverage into the vector of total unsatisfying coverage
-            // for this node.
-            m_additional_coverage.insert(m_additional_coverage.end(), a_additional_coverage.begin(), a_additional_coverage.end());
-            
-            // Increase the total coverage size.
-            m_coverage_size += a_additional_coverage.size();
-
-        }
-
     };
 
     /// @brief Gets a sum of covering products which when coupled, will cover all satisfying inputs.
@@ -476,7 +474,9 @@ namespace digital_ai
         const partitioned_example_set& a_partitioned_example_set
     )
     {
-        literal_coverage_tree l_literal_coverage_tree(a_partitioned_example_set.m_unsatisfying_inputs);
+        literal_coverage_tree l_literal_coverage_tree;
+
+        l_literal_coverage_tree.add_coverage(a_partitioned_example_set.m_unsatisfying_inputs);
 
         std::vector<literal_product> l_covering_products;
         

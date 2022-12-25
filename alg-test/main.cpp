@@ -160,7 +160,9 @@ void test_get_covering_product(
 
         digital_ai::partitioned_example_set l_partitioned_example_set(l_raw_examples, 0);
 
-        digital_ai::literal_coverage_tree l_literal_coverage_tree(l_partitioned_example_set.m_unsatisfying_inputs);
+        digital_ai::literal_coverage_tree l_literal_coverage_tree;
+
+        l_literal_coverage_tree.add_coverage(l_partitioned_example_set.m_unsatisfying_inputs);
 
         // This call only takes into account a SINGLE satisfying input and ALL unsatisfying inputs.
         digital_ai::literal_product l_covering_product = l_literal_coverage_tree.covering_product(
@@ -186,7 +188,9 @@ void test_get_covering_product(
 
         digital_ai::partitioned_example_set l_partitioned_example_set(l_raw_examples, 0);
 
-        digital_ai::literal_coverage_tree l_literal_coverage_tree(l_partitioned_example_set.m_unsatisfying_inputs);
+        digital_ai::literal_coverage_tree l_literal_coverage_tree;
+
+        l_literal_coverage_tree.add_coverage(l_partitioned_example_set.m_unsatisfying_inputs);
 
         // This call only takes into account a SINGLE satisfying input and ALL unsatisfying inputs.
         digital_ai::literal_product l_covering_product = l_literal_coverage_tree.covering_product(
@@ -212,7 +216,9 @@ void test_get_covering_product(
 
         digital_ai::partitioned_example_set l_partitioned_example_set(l_raw_examples, 0);
 
-        digital_ai::literal_coverage_tree l_literal_coverage_tree(l_partitioned_example_set.m_unsatisfying_inputs);
+        digital_ai::literal_coverage_tree l_literal_coverage_tree;
+
+        l_literal_coverage_tree.add_coverage(l_partitioned_example_set.m_unsatisfying_inputs);
 
         // This call only takes into account a SINGLE satisfying input and ALL unsatisfying inputs.
         digital_ai::literal_product l_covering_product = l_literal_coverage_tree.covering_product(
@@ -245,7 +251,9 @@ void test_get_covering_product(
 
         digital_ai::partitioned_example_set l_partitioned_example_set(l_raw_examples, 0);
 
-        digital_ai::literal_coverage_tree l_literal_coverage_tree(l_partitioned_example_set.m_unsatisfying_inputs);
+        digital_ai::literal_coverage_tree l_literal_coverage_tree;
+
+        l_literal_coverage_tree.add_coverage(l_partitioned_example_set.m_unsatisfying_inputs);
 
         // This call only takes into account a SINGLE satisfying input and ALL unsatisfying inputs.
         digital_ai::literal_product l_covering_product = l_literal_coverage_tree.covering_product(
@@ -280,7 +288,9 @@ void test_get_covering_product(
 
         digital_ai::partitioned_example_set l_partitioned_example_set(l_raw_examples, 0);
 
-        digital_ai::literal_coverage_tree l_literal_coverage_tree(l_partitioned_example_set.m_unsatisfying_inputs);
+        digital_ai::literal_coverage_tree l_literal_coverage_tree;
+
+        l_literal_coverage_tree.add_coverage(l_partitioned_example_set.m_unsatisfying_inputs);
 
         // This call only takes into account a SINGLE satisfying input and ALL unsatisfying inputs.
         digital_ai::literal_product l_covering_product = l_literal_coverage_tree.covering_product(
@@ -320,7 +330,9 @@ void test_get_covering_product(
 
         digital_ai::partitioned_example_set l_partitioned_example_set(l_raw_examples, 1);
 
-        digital_ai::literal_coverage_tree l_literal_coverage_tree(l_partitioned_example_set.m_unsatisfying_inputs);
+        digital_ai::literal_coverage_tree l_literal_coverage_tree;
+
+        l_literal_coverage_tree.add_coverage(l_partitioned_example_set.m_unsatisfying_inputs);
 
         // This call only takes into account a SINGLE satisfying input and ALL unsatisfying inputs.
         digital_ai::literal_product l_covering_product = l_literal_coverage_tree.covering_product(
@@ -677,8 +689,8 @@ int main(
 
 )
 {
-    add_8_bit_numbers_test();
-    //unit_test_main();
+    //add_8_bit_numbers_test();
+    unit_test_main();
 
     return 0;
 
