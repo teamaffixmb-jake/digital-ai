@@ -9,7 +9,7 @@
 #include <iostream>
 #include <math.h>
 
-namespace digital_ai
+namespace boolean_ai
 {
     /// @brief A class which selects a bit by index and also states whether or not it will be inverting that bit.
     class literal
@@ -476,7 +476,7 @@ namespace digital_ai
     {
         literal_coverage_tree l_literal_coverage_tree;
 
-        l_literal_coverage_tree.add_coverage(a_partitioned_example_set.m_unsatisfying_inputs);
+        l_literal_coverage_tree.add_coverage(a_partitioned_example_set.m_unprocessed_unsatisfying_inputs);
 
         std::vector<literal_product> l_covering_products;
         

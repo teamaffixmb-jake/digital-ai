@@ -4,7 +4,7 @@
 #include <vector>
 #include <stddef.h>
 
-namespace digital_ai
+namespace boolean_ai
 {
     /// @brief This struct has a bit string as input and output.
     struct raw_example
